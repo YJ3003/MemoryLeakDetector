@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Memory Leak Detector</title>
+		<!-- Link Bootstrap from CDN -->
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			crossorigin="anonymous"
+		/>
+		<style>
+			body {
+				background-color: #121212;
+				color: #ffffff;
+			}
+			.container {
+				margin-top: 50px;
+			}
+			.output-box {
+				background-color: #1e1e1e;
+				color: #00ff00;
+				padding: 20px;
+				border-radius: 10px;
+				font-family: monospace;
+				overflow-x: auto;
+				max-height: 400px;
+				white-space: pre-wrap; /* Ensure the text wraps to fit within box */
+				word-wrap: break-word;
+			}
+			.loading {
+				color: #ffcc00;
+				font-size: 1.2em;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1 class="text-center">Memory Leak Detector</h1>
+			<p class="text-center">Paste your C code to analyze memory usage</p>
+
+			<!-- Form Section -->
+			<form id="codeForm" enctype="multipart/form-data">
+				<div class="mb-3">
+					<label for="codeInput" class="form-label">Paste your C code here:</label>
+					<textarea
+						class="form-control"
+						id="codeInput"
+						rows="10"
+						placeholder="Paste your C code here..."
+					></textarea>
+				</div>
+				<div class="d-grid">
+					<button type="button" class="btn btn-primary btn-lg" id="submitButton">
+						Analyze Code
+					</button>
+				</div>
+			</form>
+
+			<!-- Output Section -->
+			<div class="mt-5">
+				<h3>Leak Detector Report:</h3>
+				<div id="output" class="output-box">
+					Submit your code to see the results here.
+				</div>
+			</div>
+
+			<!-- Loading indicator -->
+			<div id="loading" class="loading" style="display: none;">
+				<span>Processing... Please wait.</span>
+			</div>
+		</div>
+
+		<!-- Link Bootstrap JS from CDN -->
+		<script
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+			crossorigin="anonymous"
+		></script>
+		<script>
+			document
+				.getElementById("submitButton")
+				.addEventListener("click", async () => {
+					const code = document.getElementById("codeInput").value;
+					if (!code.trim()) {
+						alert("Please paste some C code before submitting.");
+						return;
+					}
+
+					// Show loading indicator
+					document.getElementById("loading").style.display = "block";
+					document.getElementById("output").textContent = ""; // Clear previous output
+
+					// Sending the code to the backend for processing
+					try {
+						const response = await fetch("/analyze", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({ code }),
+						});
+
+						const result = await response.json();
+						// Hide loading indicator
+						document.getElementById("loading").style.display = "none";
+
+						// Check for errors in response
+						if (result.error) {
+							document.getElementById("output").textContent = `Error: ${result.error}`;
+						} else {
+							document.getElementById("output").textContent = result.result;
+						}
+					} catch (error) {
+						// Hide loading indicator
+						document.getElementById("loading").style.display = "none";
+						document.getElementById("output").textContent = `An error occurred: ${error.message}`;
+					}
+				});
+		</script>
+	</body>
+</html>
